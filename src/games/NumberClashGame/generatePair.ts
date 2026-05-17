@@ -11,7 +11,7 @@ export function generatePair(): [number, number] {
   let n1 = generate();
   let n2 = generate();
 
-  if (Math.random() < 0.2) {
+  if (Math.random() < 0.05) {
     n2 = n1;
   } else if (Math.random() < 0.3) {
     const diffStr = n1.toString().split('');
