@@ -1,4 +1,4 @@
-import { useState, useEffect, type FormEvent } from 'react';
+import { useState, useEffect, useRef, type FormEvent } from 'react';
 import { motion } from 'motion/react';
 import { RefreshCw } from 'lucide-react';
 import { Confetti } from '../../components/Confetti';
@@ -14,6 +14,7 @@ export function NumberRounderGame() {
   const [isWin, setIsWin] = useState(false);
   const { isError, triggerError, clearError, shakeAnimation } = useShakeOnError();
   const { addStar, resetStreak } = useScore();
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const startNewRound = () => {
     setPuzzle(generateRoundingPuzzle());
@@ -37,16 +38,40 @@ export function NumberRounderGame() {
   };
 
   useEffect(() => {
-    if (!isWin) return;
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Enter') {
+      if (e.target instanceof HTMLInputElement) return;
+
+      if (e.key === 'Enter' && isWin) {
         e.preventDefault();
         startNewRound();
+        return;
+      }
+
+      if (!isWin && (e.key === 'Backspace' || /^[0-9]$/.test(e.key))) {
+        e.preventDefault();
+        inputRef.current?.focus();
+        let raw = inputValue.replace(/[^0-9]/g, '');
+        if (e.key === 'Backspace') {
+          raw = raw.slice(0, -1);
+        } else {
+          raw = raw + e.key;
+        }
+        const answerLen = puzzle.answer.toString().length;
+        let result = '';
+        for (let i = 0; i < raw.length; i++) {
+          result += raw[i];
+          const nextPosFromRight = answerLen - (i + 1);
+          if (nextPosFromRight > 0 && nextPosFromRight % 3 === 0) {
+            result += ',';
+          }
+        }
+        setInputValue(result);
+        clearError();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isWin]);
+  }, [isWin, inputValue, puzzle.answer]);
 
   return (
     <motion.div
@@ -79,10 +104,41 @@ export function NumberRounderGame() {
         className="flex flex-col items-center gap-4 w-full max-w-sm"
       >
         <input
+          ref={inputRef}
           type="text"
           inputMode="numeric"
           value={inputValue}
-          onChange={(e) => { setInputValue(e.target.value); clearError(); }}
+          onKeyDown={(e) => {
+            if (e.key === 'Backspace') {
+              e.preventDefault();
+              const raw = inputValue.replace(/[^0-9]/g, '').slice(0, -1);
+              const answerLen = puzzle.answer.toString().length;
+              let result = '';
+              for (let i = 0; i < raw.length; i++) {
+                result += raw[i];
+                const nextPosFromRight = answerLen - (i + 1);
+                if (nextPosFromRight > 0 && nextPosFromRight % 3 === 0) {
+                  result += ',';
+                }
+              }
+              setInputValue(result);
+              clearError();
+            }
+          }}
+          onChange={(e) => {
+            const raw = e.target.value.replace(/[^0-9]/g, '');
+            const answerLen = puzzle.answer.toString().length;
+            let result = '';
+            for (let i = 0; i < raw.length; i++) {
+              result += raw[i];
+              const nextPosFromRight = answerLen - (i + 1);
+              if (nextPosFromRight > 0 && nextPosFromRight % 3 === 0) {
+                result += ',';
+              }
+            }
+            setInputValue(result);
+            clearError();
+          }}
           disabled={isWin}
           placeholder="Your answer"
           className={`hide-spinners w-full text-center text-3xl sm:text-5xl font-black bg-slate-950 p-4 rounded-xl sm:rounded-2xl border-2 sm:border-4 outline-none transition-all ${isWin ? 'border-emerald-500 text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.3)]' : isError ? 'border-red-500 focus:border-red-400 shadow-[0_0_20px_rgba(239,68,68,0.3)] text-red-100' : 'border-slate-700 focus:border-emerald-500 text-white'}`}
