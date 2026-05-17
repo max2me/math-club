@@ -1,20 +1,34 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# Place Value Explorer
 
-# Run and deploy your AI Studio app
+A collection of interactive math games for kids learning place value, number comparison, and rounding.
 
-This contains everything you need to run your app locally.
+## Games
 
-View your app in AI Studio: https://ai.studio/apps/5db510b6-b5dd-4a99-ab9b-dd927a39965d
+- **Match Maker** — Set each digit to match a target number using up/down controls or keyboard
+- **Value Decoder** — Identify the value of a highlighted digit in a number
+- **Number Clash** — Compare two numbers using <, =, or > (with a drag-and-drop alignment workpad)
+- **Number Rounder** — Round numbers to the nearest ten, hundred, thousand, or ten thousand
 
-## Run Locally
+## Features
 
-**Prerequisites:**  Node.js
+- Full keyboard support (arrow keys, digit typing, Enter to submit)
+- Star streak scoring across all games
+- Responsive design for desktop and mobile
+- Confetti celebrations on correct answers
 
+## Running Locally
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+Prerequisites: Node.js 18+
+
+```sh
+npm install
+npm run dev
+```
+
+## Build
+
+```sh
+npm run build
+```
+
+Output goes to `dist/`.
