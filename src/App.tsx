@@ -6,10 +6,11 @@ import { ScoreDisplay } from './components/ScoreDisplay';
 import { PowerGridGame } from './games/PowerGridGame';
 import { ValueDecoderGame } from './games/ValueDecoderGame';
 import { NumberClashGame } from './games/NumberClashGame';
+import { NumberRounderGame } from './games/NumberRounderGame';
 
 function getInitialGameMode(): GameMode | null {
   const hash = window.location.hash.replace('#', '');
-  if (hash === 'value-decoder' || hash === 'number-clash' || hash === 'power-grid') return hash;
+  if (hash === 'value-decoder' || hash === 'number-clash' || hash === 'power-grid' || hash === 'number-rounder') return hash;
   return null;
 }
 
@@ -23,7 +24,7 @@ export default function App() {
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash.replace('#', '') as GameMode;
-      if (hash === 'value-decoder' || hash === 'power-grid' || hash === 'number-clash') {
+      if (hash === 'value-decoder' || hash === 'power-grid' || hash === 'number-clash' || hash === 'number-rounder') {
         setGameMode(hash);
       } else {
         setGameMode(null);
@@ -45,6 +46,7 @@ export default function App() {
         {gameMode === 'power-grid' && <PowerGridGame />}
         {gameMode === 'value-decoder' && <ValueDecoderGame />}
         {gameMode === 'number-clash' && <NumberClashGame />}
+        {gameMode === 'number-rounder' && <NumberRounderGame />}
       </div>
     </div>
   );

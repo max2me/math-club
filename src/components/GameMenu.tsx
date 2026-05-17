@@ -1,4 +1,4 @@
-import { Gamepad2, PenTool, Swords } from 'lucide-react';
+import { Gamepad2, PenTool, Swords, Target } from 'lucide-react';
 import type { GameMode } from '../constants';
 
 type GameMenuProps = {
@@ -32,6 +32,15 @@ const GAMES = [
     color: 'from-amber-600 to-orange-600',
     hoverColor: 'hover:from-amber-500 hover:to-orange-500',
     shadow: 'shadow-[0_0_30px_rgba(251,191,36,0.3)]',
+  },
+  {
+    id: 'number-rounder' as GameMode,
+    title: 'Number Rounder',
+    description: 'Round numbers to the nearest ten, hundred, or thousand',
+    icon: Target,
+    color: 'from-purple-600 to-fuchsia-600',
+    hoverColor: 'hover:from-purple-500 hover:to-fuchsia-500',
+    shadow: 'shadow-[0_0_30px_rgba(168,85,247,0.3)]',
   },
 ];
 

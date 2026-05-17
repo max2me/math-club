@@ -33,7 +33,17 @@ export const COLUMNS: Column[] = [
   { id: 6, isSeparator: false, type: 'part', title: 'Thousandths', color: 'text-rose-400', bgLight: 'bg-rose-500/20', border: 'border-rose-500/50', ring: 'ring-rose-400 drop-shadow-[0_0_10px_rgba(251,113,133,0.8)]', icon: Circle, size: 8, label: 'Nano Dust' },
 ];
 
-export type GameMode = 'power-grid' | 'value-decoder' | 'number-clash';
+export type GameMode = 'power-grid' | 'value-decoder' | 'number-clash' | 'number-rounder';
+
+// Colors by place value position from the right (ones=0, tens=1, hundreds=2, ...)
+export const PLACE_COLORS = [
+  { color: 'text-amber-400', bgLight: 'bg-amber-500/20', border: 'border-amber-500/50', ring: 'ring-amber-400 shadow-[0_0_15px_rgba(251,191,36,0.4)]' },
+  { color: 'text-emerald-400', bgLight: 'bg-emerald-500/20', border: 'border-emerald-500/50', ring: 'ring-emerald-400 shadow-[0_0_15px_rgba(52,211,153,0.4)]' },
+  { color: 'text-blue-400', bgLight: 'bg-blue-500/20', border: 'border-blue-500/50', ring: 'ring-blue-400 shadow-[0_0_15px_rgba(96,165,250,0.4)]' },
+  { color: 'text-indigo-400', bgLight: 'bg-indigo-500/20', border: 'border-indigo-500/50', ring: 'ring-indigo-400 shadow-[0_0_15px_rgba(129,140,248,0.4)]' },
+  { color: 'text-purple-400', bgLight: 'bg-purple-500/20', border: 'border-purple-500/50', ring: 'ring-purple-400 shadow-[0_0_15px_rgba(192,132,252,0.4)]' },
+  { color: 'text-pink-400', bgLight: 'bg-pink-500/20', border: 'border-pink-500/50', ring: 'ring-pink-400 shadow-[0_0_15px_rgba(244,114,182,0.4)]' },
+];
 
 export type Digits = [number, number, number, number, number, number, number];
 
