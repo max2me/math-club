@@ -4,6 +4,7 @@ import { DndContext, DragOverlay, MouseSensor, TouchSensor, useSensor, useSensor
 import { RefreshCw, PenTool, Trash2 } from 'lucide-react';
 import { Confetti } from '../../components/Confetti';
 import { useShakeOnError } from '../../hooks/useShakeOnError';
+import { useScore } from '../../hooks/useScore';
 import { MainDraggableNumberBlock } from './DraggableNumberBlock';
 import { DragWorkpad } from './DragWorkpad';
 import { DragOverlayContent } from './DragOverlayContent';
@@ -17,6 +18,7 @@ export function NumberClashGame() {
   const [selectedOp, setSelectedOp] = useState<CompareOp | null>(null);
   const [clearCount, setClearCount] = useState(0);
   const { isError, triggerError, shakeAnimation } = useShakeOnError(1000);
+  const { addStar, resetStreak } = useScore();
 
   const [placedItems, setPlacedItems] = useState<PlacedItem[]>([]);
   const [activeNode, setActiveNode] = useState<{ id: string; value: number; colorClass?: string } | null>(null);
@@ -74,8 +76,10 @@ export function NumberClashGame() {
     setSelectedOp(op);
     if (correct) {
       setIsWin(true);
+      addStar();
     } else {
       triggerError();
+      resetStreak();
       setTimeout(() => setSelectedOp(null), 1000);
     }
   };

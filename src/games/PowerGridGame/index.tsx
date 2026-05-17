@@ -6,6 +6,7 @@ import { NumberDisplay } from '../../components/NumberDisplay';
 import { GameButton, NextMissionButton } from '../../components/GameButton';
 import { Confetti } from '../../components/Confetti';
 import { useShakeOnError } from '../../hooks/useShakeOnError';
+import { useScore } from '../../hooks/useScore';
 import { generateTarget } from './generateTarget';
 import { PlaceValueColumn } from './PlaceValueColumn';
 import { DecimalSeparator } from './DecimalSeparator';
@@ -19,6 +20,7 @@ export function PowerGridGame() {
   const [isWin, setIsWin] = useState(false);
   const [focusedCol, setFocusedCol] = useState(3);
   const { isError, triggerError, clearError, shakeAnimation } = useShakeOnError();
+  const { addStar, resetStreak } = useScore();
 
   const startNewRound = useCallback(() => {
     setTargetDigits(generateTarget());
@@ -35,10 +37,12 @@ export function PowerGridGame() {
   const handleVerify = useCallback(() => {
     if (digits.every((val, i) => val === targetDigits[i])) {
       setIsWin(true);
+      addStar();
     } else {
       triggerError();
+      resetStreak();
     }
-  }, [digits, targetDigits, triggerError]);
+  }, [digits, targetDigits, triggerError, addStar, resetStreak]);
 
   const handleUpdate = useCallback((index: number, delta: number) => {
     if (isWin) return;
@@ -143,7 +147,7 @@ export function PowerGridGame() {
         )}
       </motion.div>
 
-      <div className="w-full flex-1 min-h-[150px] bg-slate-950/50 rounded-xl sm:rounded-2xl md:rounded-3xl p-1 sm:p-2 md:p-4 shadow-2xl border border-slate-800 flex flex-col mt-1 sm:mt-2">
+      <div className="w-full flex-1 min-h-[150px] max-h-[280px] sm:max-h-[320px] bg-slate-950/50 rounded-xl sm:rounded-2xl md:rounded-3xl p-1 sm:p-2 md:p-4 shadow-2xl border border-slate-800 flex flex-col mt-1 sm:mt-2">
         <div className="flex w-full h-full items-stretch justify-center gap-0.5 sm:gap-1 md:gap-2">
           {COLUMNS.map((col) => {
             if (col.isSeparator === true) {

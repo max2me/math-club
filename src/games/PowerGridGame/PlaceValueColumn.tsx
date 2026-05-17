@@ -29,7 +29,7 @@ export function PlaceValueColumn({ col, value, disabled, focused, onFocus, onInc
         </span>
       </div>
 
-      <div className="flex flex-col flex-1 items-center justify-center w-full min-h-0 py-0.5">
+      <div className="flex flex-col items-center justify-center w-full py-0.5">
         <button
           onClick={onIncrement}
           disabled={isAtMax || disabled}
@@ -38,7 +38,7 @@ export function PlaceValueColumn({ col, value, disabled, focused, onFocus, onInc
           <ChevronUp className="w-3 h-3 sm:w-5 sm:h-5 md:w-6 md:h-6" />
         </button>
 
-        <div className="my-0.5 sm:my-1.5 md:my-2 w-full flex-1 flex items-center justify-center min-h-[20px] sm:min-h-[30px] md:min-h-[40px] text-base sm:text-2xl md:text-3xl font-black bg-slate-900 rounded-sm sm:rounded-md md:rounded-lg shadow-inner border border-slate-800">
+        <div className="my-0.5 sm:my-1.5 md:my-2 w-full h-8 sm:h-10 md:h-12 flex items-center justify-center text-base sm:text-2xl md:text-3xl font-black bg-slate-900 rounded-sm sm:rounded-md md:rounded-lg shadow-inner border border-slate-800">
           <span className={col.color}>{value}</span>
         </div>
 

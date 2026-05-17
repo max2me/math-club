@@ -6,6 +6,7 @@ import type { Digits } from '../../constants';
 import { NumberDisplay } from '../../components/NumberDisplay';
 import { Confetti } from '../../components/Confetti';
 import { useShakeOnError } from '../../hooks/useShakeOnError';
+import { useScore } from '../../hooks/useScore';
 
 export function ValueDecoderGame() {
   const [targetDigits, setTargetDigits] = useState<Digits>([...EMPTY_DIGITS] as Digits);
@@ -13,20 +14,35 @@ export function ValueDecoderGame() {
   const [inputValue, setInputValue] = useState('');
   const [isWin, setIsWin] = useState(false);
   const { isError, triggerError, clearError, shakeAnimation } = useShakeOnError();
+  const { addStar, resetStreak } = useScore();
 
   useEffect(() => {
     startNewRound();
   }, []);
 
   const startNewRound = () => {
-    const startWhole = Math.floor(Math.random() * 4);
     const newTarget: Digits = [...EMPTY_DIGITS] as Digits;
-    for (let i = startWhole; i <= 3; i++) {
-      newTarget[i] = Math.floor(Math.random() * 9) + 1;
-    }
-    setTargetDigits(newTarget);
 
-    const highlight = startWhole + Math.floor(Math.random() * (4 - startWhole));
+    // Pick highlight first, then build a number that includes that position
+    const highlight = Math.floor(Math.random() * 4); // 0=thousands, 1=hundreds, 2=tens, 3=ones
+
+    // Always fill from at least the highlighted position through ones
+    // Also extend left sometimes for variety
+    const earliestPossible = Math.min(highlight, Math.floor(Math.random() * (highlight + 1)));
+    for (let i = earliestPossible; i <= 3; i++) {
+      if (i === earliestPossible) {
+        newTarget[i] = Math.floor(Math.random() * 9) + 1; // 1-9 to avoid leading zero
+      } else {
+        newTarget[i] = Math.floor(Math.random() * 10);
+      }
+    }
+
+    // Ensure the highlighted digit is non-zero so the answer is meaningful
+    if (newTarget[highlight] === 0) {
+      newTarget[highlight] = Math.floor(Math.random() * 9) + 1;
+    }
+
+    setTargetDigits(newTarget);
     setHighlightedIndex(highlight);
     setInputValue('');
     setIsWin(false);
@@ -40,8 +56,10 @@ export function ValueDecoderGame() {
     if (inputValue === '') return;
     if (parseInt(inputValue, 10) === expectedValue) {
       setIsWin(true);
+      addStar();
     } else {
       triggerError();
+      resetStreak();
     }
   };
 
