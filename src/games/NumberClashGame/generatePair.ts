@@ -6,10 +6,19 @@ const strategies = [
 ];
 
 export function generatePair(): [number, number] {
-  const generate = () => strategies[Math.floor(Math.random() * strategies.length)]();
+  const strategyIdx = Math.floor(Math.random() * strategies.length);
 
-  let n1 = generate();
-  let n2 = generate();
+  let n1: number;
+  let n2: number;
+
+  // 70% of the time, use the same strategy for both (same digit count)
+  if (Math.random() < 0.7) {
+    n1 = strategies[strategyIdx]();
+    n2 = strategies[strategyIdx]();
+  } else {
+    n1 = strategies[strategyIdx]();
+    n2 = strategies[Math.floor(Math.random() * strategies.length)]();
+  }
 
   if (Math.random() < 0.05) {
     n2 = n1;
