@@ -1,13 +1,13 @@
 export type RoundingPlace = 'ten' | 'hundred' | 'thousand' | 'ten-thousand';
 
-type RoundConfig = {
+export type RoundConfig = {
   place: RoundingPlace;
   label: string;
   divisor: number;
   minDigits: number;
 };
 
-const ROUNDING_OPTIONS: RoundConfig[] = [
+export const ROUNDING_OPTIONS: RoundConfig[] = [
   { place: 'ten', label: 'nearest ten', divisor: 10, minDigits: 2 },
   { place: 'hundred', label: 'nearest hundred', divisor: 100, minDigits: 3 },
   { place: 'thousand', label: 'nearest thousand', divisor: 1000, minDigits: 4 },
@@ -30,6 +30,8 @@ export type RoundingPuzzle = {
 
 export type RoundingOptions = {
   maxDigits: number;
+  exactDigits?: number;
+  place?: RoundingPlace;
 };
 
 export function generateRoundingPuzzle(options?: RoundingOptions): RoundingPuzzle {
@@ -40,9 +42,13 @@ export function generateRoundingPuzzle(options?: RoundingOptions): RoundingPuzzl
     return { number: 15, place: 'ten', label: 'nearest ten', divisor: 10, answer: 20 };
   }
 
-  const config = validOptions[Math.floor(Math.random() * validOptions.length)];
+  const config = options?.place
+    ? validOptions.find(o => o.place === options.place) ?? validOptions[Math.floor(Math.random() * validOptions.length)]
+    : validOptions[Math.floor(Math.random() * validOptions.length)];
 
-  const numDigits = config.minDigits + Math.floor(Math.random() * (maxDigits - config.minDigits + 1));
+  const numDigits = options?.exactDigits
+    ? options.exactDigits
+    : config.minDigits + Math.floor(Math.random() * (maxDigits - config.minDigits + 1));
 
   for (let attempt = 0; attempt < 100; attempt++) {
     const number = generateNumberWithDigits(numDigits);

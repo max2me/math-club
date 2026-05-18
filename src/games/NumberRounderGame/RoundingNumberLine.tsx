@@ -7,9 +7,12 @@ type RoundingNumberLineProps = {
   divisor: number;
   isWin: boolean;
   underlineDigitIndex?: number | null;
+  showMidpoint?: boolean;
+  showTarget?: boolean;
+  showRoundButtons?: boolean;
 };
 
-export function RoundingNumberLine({ number, divisor, isWin, underlineDigitIndex }: RoundingNumberLineProps) {
+export function RoundingNumberLine({ number, divisor, isWin, underlineDigitIndex, showMidpoint = true, showTarget = true, showRoundButtons = true }: RoundingNumberLineProps) {
   const lowerBound = Math.floor(number / divisor) * divisor;
   const upperBound = lowerBound + divisor;
   const isCloserToUpper = (number - lowerBound) >= divisor / 2;
@@ -22,15 +25,18 @@ export function RoundingNumberLine({ number, divisor, isWin, underlineDigitIndex
   const lowerFraction = (lowerBound - rangeBottom) / totalRange;
   const upperFraction = (upperBound - rangeBottom) / totalRange;
 
+  const midpoint = (lowerBound + upperBound) / 2;
+  const midFraction = (midpoint - rangeBottom) / totalRange;
+
   const ticks = [
-    { value: rangeBottom, fraction: 0 },
-    { value: lowerBound, fraction: lowerFraction },
-    { value: upperBound, fraction: upperFraction },
-    { value: rangeTop, fraction: 1 },
+    { value: rangeBottom, fraction: 0, isMidpoint: false },
+    { value: lowerBound, fraction: lowerFraction, isMidpoint: false },
+    { value: midpoint, fraction: midFraction, isMidpoint: true },
+    { value: upperBound, fraction: upperFraction, isMidpoint: false },
+    { value: rangeTop, fraction: 1, isMidpoint: false },
   ];
 
   const [resolved, setResolved] = useState<'up' | 'down' | null>(null);
-  const [shaking, setShaking] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerHeight, setContainerHeight] = useState(0);
 
@@ -48,14 +54,7 @@ export function RoundingNumberLine({ number, divisor, isWin, underlineDigitIndex
   const format = (n: number) => new Intl.NumberFormat('en-US').format(n);
 
   const handleChoice = (choice: 'up' | 'down') => {
-    if (resolved) return;
-    const correct = (choice === 'up' && isCloserToUpper) || (choice === 'down' && !isCloserToUpper);
-    if (correct) {
-      setResolved(choice);
-    } else {
-      setShaking(true);
-      setTimeout(() => setShaking(false), 500);
-    }
+    setResolved(choice);
   };
 
   const answerFraction = resolved === 'up' ? upperFraction : resolved === 'down' ? lowerFraction : markerFraction;
@@ -65,10 +64,10 @@ export function RoundingNumberLine({ number, divisor, isWin, underlineDigitIndex
 
   return (
     <motion.div
-      initial={{ opacity: 0, x: 20 }}
-      animate={shaking ? { opacity: 1, x: [-6, 6, -6, 6, 0] } : { opacity: 1, x: 0 }}
+      initial={{ opacity: 0, x: 20, scale: 2 }}
+      animate={{ opacity: 1, x: 0, scale: 2 }}
       transition={{ duration: 0.4 }}
-      className="flex items-center"
+      className="flex items-center origin-center"
     >
       {/* Chart container */}
       <div ref={containerRef} className="relative h-56 sm:h-64" style={{ width: 94 }}>
@@ -89,32 +88,36 @@ export function RoundingNumberLine({ number, divisor, isWin, underlineDigitIndex
 
         {containerHeight > 0 && (
           <>
-            {/* Tick labels (left of bar) and lines */}
+            {/* Tick labels on the left */}
             {ticks.map((tick) => {
               const isAnswer = (resolved === 'up' && tick.value === upperBound) ||
                                (resolved === 'down' && tick.value === lowerBound);
               const isTarget = tick.value === lowerBound || tick.value === upperBound;
               const top = fractionToTop(tick.fraction);
+
+              const hidden = tick.isMidpoint && !showMidpoint;
+
               return (
                 <div
                   key={tick.value}
-                  className="absolute left-0 flex items-center"
-                  style={{ top, transform: 'translateY(-50%)', right: 4 }}
+                  className="absolute left-0 flex items-center transition-opacity"
+                  style={{ top, transform: 'translateY(-50%)', right: 4, opacity: hidden ? 0 : 1 }}
                 >
-                  <span className={`flex-1 text-right text-[10px] sm:text-xs font-bold tabular-nums whitespace-nowrap ${isAnswer ? 'text-emerald-400' : isTarget ? 'text-slate-200' : 'text-slate-500'}`}>
+                  <span className={`flex-1 text-right text-[10px] sm:text-xs font-bold tabular-nums whitespace-nowrap ${tick.isMidpoint ? 'text-slate-500' : isAnswer ? 'text-emerald-400' : isTarget ? 'text-slate-200' : 'text-slate-500'}`}>
                     {format(tick.value)}
                   </span>
-                  <div className={`w-7 h-px ml-1 ${isTarget ? 'bg-slate-300' : 'bg-slate-600'}`} />
+                  <div className={`w-7 h-px ml-1 ${tick.isMidpoint ? 'bg-slate-500' : isTarget ? 'bg-slate-300' : 'bg-slate-600'}`} />
                 </div>
               );
             })}
 
-            {/* Number marker */}
+            {/* Number marker (target) - on the right */}
             <div
-              className="absolute left-0 flex items-center"
-              style={{ top: fractionToTop(markerFraction), transform: 'translateY(-50%)', right: 4 }}
+              className="absolute flex items-center transition-opacity"
+              style={{ top: fractionToTop(markerFraction), transform: 'translateY(-50%)', left: 'calc(100% - 4px)', opacity: showTarget ? 1 : 0 }}
             >
-              <span className="flex-1 text-right flex justify-end">
+              <div className="w-4 h-[3px] bg-purple-400 rounded-full" />
+              <span className="ml-1.5 flex">
                 {format(number).split('').map((char, i) => {
                   const isComma = char === ',';
                   let digitIdx = 0;
@@ -126,28 +129,27 @@ export function RoundingNumberLine({ number, divisor, isWin, underlineDigitIndex
                     <span
                       key={i}
                       className={`text-[10px] sm:text-xs font-bold tabular-nums ${isComma ? 'text-purple-300/50' : 'text-purple-300'}`}
-                      style={{ borderBottom: `2px solid ${shouldUnderline ? 'rgb(251, 191, 36)' : 'transparent'}`, paddingBottom: 1 }}
+                      style={{ paddingBottom: 1 }}
                     >
                       {char}
                     </span>
                   );
                 })}
               </span>
-              <div className="w-7 h-[3px] ml-1 bg-purple-400 rounded-full" />
             </div>
           </>
         )}
       </div>
 
       {/* Round up/down links positioned next to upper/lower ticks */}
-      <div className="relative h-56 sm:h-64 ml-3" style={{ width: 80 }}>
+      <div className="relative h-56 sm:h-64 ml-3 transition-opacity" style={{ width: 80, opacity: showRoundButtons ? 1 : 0 }}>
         {containerHeight > 0 && (
           <>
             {/* Round up - next to upper bound */}
             <button
               onClick={() => handleChoice('up')}
-              disabled={resolved !== null}
-              className={`absolute left-0 -translate-y-1/2 flex items-center gap-1 text-[10px] sm:text-xs font-black whitespace-nowrap transition-all ${resolved === 'up' ? 'text-emerald-400' : resolved ? 'text-slate-600 cursor-default' : 'text-slate-300 hover:text-white cursor-pointer'}`}
+              disabled={!showRoundButtons}
+              className={`absolute left-0 -translate-y-1/2 flex items-center gap-1 text-[10px] sm:text-xs font-black whitespace-nowrap transition-all cursor-pointer ${resolved === 'up' ? 'text-emerald-400' : 'text-slate-300 hover:text-white'}`}
               style={{ top: fractionToTop(upperFraction) }}
             >
               <ChevronUp className="w-3 h-3" />
@@ -157,8 +159,8 @@ export function RoundingNumberLine({ number, divisor, isWin, underlineDigitIndex
             {/* Round down - next to lower bound */}
             <button
               onClick={() => handleChoice('down')}
-              disabled={resolved !== null}
-              className={`absolute left-0 -translate-y-1/2 flex items-center gap-1 text-[10px] sm:text-xs font-black whitespace-nowrap transition-all ${resolved === 'down' ? 'text-emerald-400' : resolved ? 'text-slate-600 cursor-default' : 'text-slate-300 hover:text-white cursor-pointer'}`}
+              disabled={!showRoundButtons}
+              className={`absolute left-0 -translate-y-1/2 flex items-center gap-1 text-[10px] sm:text-xs font-black whitespace-nowrap transition-all cursor-pointer ${resolved === 'down' ? 'text-emerald-400' : 'text-slate-300 hover:text-white'}`}
               style={{ top: fractionToTop(lowerFraction) }}
             >
               <ChevronDown className="w-3 h-3" />

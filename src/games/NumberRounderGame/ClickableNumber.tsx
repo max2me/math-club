@@ -107,14 +107,6 @@ export function ClickableNumber({ number, highlightedIndex, neighborIndex, disab
                 displayChar
               )}
             </button>
-            {isNeighbor && (
-              <motion.div
-                initial={{ scaleX: 0 }}
-                animate={{ scaleX: 1 }}
-                transition={{ duration: 0.3, ease: 'easeOut', delay: 0.2 }}
-                className="absolute -bottom-2.5 left-1 right-1 h-[3px] sm:h-1 rounded-full bg-amber-400 origin-left"
-              />
-            )}
             {!disabled && (
               <span className="absolute top-full left-1/2 -translate-x-1/2 mt-1 text-[9px] sm:text-[10px] font-bold text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
                 {placeName}
