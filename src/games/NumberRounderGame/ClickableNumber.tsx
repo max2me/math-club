@@ -1,4 +1,3 @@
-import { useCallback, type RefCallback } from 'react';
 import { motion } from 'motion/react';
 
 export type SpinDirection = 'up' | 'down';
@@ -14,16 +13,14 @@ export type AnimatingState = {
 type ClickableNumberProps = {
   number: number;
   highlightedIndex: number | null;
-  neighborIndex?: number | null;
   disabled?: boolean;
   onDigitClick: (index: number) => void;
-  onNeighborRef?: (el: HTMLElement | null) => void;
   animating?: AnimatingState;
 };
 
 const PLACE_NAMES = ['ones', 'tens', 'hundreds', 'thousands', 'ten thousands', 'hundred thousands', 'millions'];
 
-export function ClickableNumber({ number, highlightedIndex, neighborIndex, disabled, onDigitClick, onNeighborRef, animating }: ClickableNumberProps) {
+export function ClickableNumber({ number, highlightedIndex, disabled, onDigitClick, animating }: ClickableNumberProps) {
   const numStr = number.toString();
   const totalDigits = numStr.length;
   const formatted = new Intl.NumberFormat('en-US').format(number);
@@ -46,8 +43,6 @@ export function ClickableNumber({ number, highlightedIndex, neighborIndex, disab
         digitIndex++;
 
         const isHighlighted = highlightedIndex === currentDigitIndex;
-        const isNeighbor = neighborIndex === currentDigitIndex;
-
         const overrideValue = animating?.digitOverrides.get(currentDigitIndex);
         const isSpinning = animating?.spinningIndex === currentDigitIndex;
         const isFading = animating?.fadingIndex === currentDigitIndex;
@@ -68,7 +63,6 @@ export function ClickableNumber({ number, highlightedIndex, neighborIndex, disab
         return (
           <div key={`digit-${i}`} className="relative group">
             <button
-              ref={isNeighbor && onNeighborRef ? onNeighborRef as any : undefined}
               onClick={() => onDigitClick(currentDigitIndex)}
               className={`w-10 h-12 sm:w-14 sm:h-16 md:w-16 md:h-20 flex items-center justify-center text-2xl sm:text-4xl md:text-5xl font-black rounded-xl border-2 transition-all active:scale-95 overflow-hidden ${style}`}
             >
