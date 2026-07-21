@@ -1,8 +1,0 @@
-{
-  "name": "Place Value Explorer",
-  "description": "An engaging, interactive app designed to teach place values (hundreds to decimals) to children with dyscalculia and ADHD.",
-  "requestFramePermissions": [],
-  "majorCapabilities": [
-    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
-  ]
-}
