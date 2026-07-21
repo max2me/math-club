@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Math Practice — Grade 5</title>
+<style>
+  :root { --ink:#1a1a1a; --line:#333; --accent:#1f5fa8; --ans:#c0392b; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    color: var(--ink); margin: 0; padding: 24px; background: #f4f4f4;
+  }
+  .controls {
+    position: sticky; top: 0; z-index: 10;
+    display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+    background: #fff; padding: 12px 16px; border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.12); margin-bottom: 20px;
+  }
+  .controls button {
+    font-size: 15px; padding: 9px 16px; border: none; border-radius: 7px;
+    background: var(--accent); color: #fff; cursor: pointer; font-weight: 600;
+  }
+  .controls button.secondary { background: #5a6b7b; }
+  .controls button:hover { filter: brightness(1.08); }
+  .controls label { font-size: 14px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+  .hint { font-size: 13px; color: #666; margin-left: auto; }
+
+  .sheet {
+    background: #fff; max-width: 900px; margin: 0 auto; padding: 40px 48px;
+    box-shadow: 0 2px 12px rgba(0,0,0,.1);
+  }
+  .doc-title { text-align: center; font-size: 26px; font-weight: 700; margin: 0 0 4px; }
+  .doc-sub { text-align: center; font-size: 13px; color: #777; margin: 0 0 18px; }
+  .meta { display: flex; gap: 28px; font-size: 14px; border-bottom: 2px solid var(--ink);
+          padding-bottom: 8px; margin-bottom: 22px; }
+  .meta span { flex: 1; }
+  .meta b { font-weight: 600; }
+
+  section { margin-bottom: 26px; page-break-inside: avoid; }
+  h2 { font-size: 17px; color: var(--accent); margin: 0 0 2px;
+       border-bottom: 1px solid #ccc; padding-bottom: 4px; }
+  .instr { font-size: 13px; color: #555; margin: 4px 0 12px; }
+
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px 24px; }
+  .grid.two { grid-template-columns: repeat(2, 1fr); }
+  .prob { font-size: 21px; line-height: 1.6; }
+  .prob .n { font-size: 12px; color: #888; vertical-align: super; margin-right: 6px; }
+  /* right-align column problems so they line up vertically within each grid column */
+  .grid.rt .prob { text-align: right; }
+  .grid.rt .prob > * { text-align: left; }
+
+  /* answer line for inline problems */
+  .blankline { display: inline-block; min-width: 120px; border-bottom: 1px solid #999;
+               margin-left: 6px; text-align: center; }
+  /* writing space with no visible underline (still reserves room + shows answers) */
+  .blankline.noline { border-bottom: none; }
+  .ans { color: var(--ans); font-weight: 600; visibility: hidden; }
+  body.show-ans .ans { visibility: visible; }
+
+  /* expanded-form rows: number fixed, answer line fills remaining width so it never wraps */
+  .exprow { display: flex; align-items: baseline; gap: 8px; width: 100%; }
+  .exprow .expnum { flex: 0 0 auto; white-space: nowrap; }
+  .exprow .expline { flex: 4 1 auto; min-width: 0; white-space: nowrap; }
+  .exprow::after { content: ""; flex: 1 1 auto; }   /* spacer: line takes 80% of remaining width */
+  /* when answers are hidden, clip the invisible answer text so it can't disturb layout */
+  body:not(.show-ans) .exprow .expline { overflow: hidden; }
+
+  /* fractions */
+  .frac { display: inline-block; text-align: center; vertical-align: middle; margin: 0 3px; }
+  .frac .num { display: block; border-bottom: 1.5px solid var(--ink); padding: 0 5px; }
+  .frac .den { display: block; padding: 0 5px; }
+
+  /* column add/subtract */
+  .col { display: inline-block; font-variant-numeric: tabular-nums; text-align: right; }
+  .col .row { font-family: "Courier New", monospace; font-size: 20px; white-space: pre; }
+  .col .bar { border-top: 2px solid var(--ink); margin-top: 2px; padding-top: 4px; min-height: 24px; }
+  .col .result { font-family: "Courier New", monospace; font-size: 20px; color: var(--ans);
+                 visibility: hidden; white-space: pre; }
+  body.show-ans .col .result { visibility: visible; }
+
+  /* grid multiplication */
+  .multi { display: inline-block; }
+  .mrow { display: flex; align-items: flex-end; }
+  .mrow .op { width: 22px; text-align: center; font-size: 21px; font-weight: 700; }
+  .mcell { width: 34px; height: 34px; border: 1.5px solid #aab4c4;
+           background: #eef2f8; text-align: center; line-height: 34px; font-size: 21px;
+           font-weight: 700; color: var(--accent); }
+  .mcell b { color: var(--accent); }
+  .mcell .ans { color: var(--ans); }
+  .mbar { border-top: 2.5px solid var(--ink); margin: 5px 0; }
+
+  /* boxed column add / subtract (same style as grid multiplication) */
+  .csum { display: inline-block; }
+  .crow { display: flex; align-items: flex-end; }
+  .crow .cop { width: 22px; text-align: center; font-size: 21px; font-weight: 700; }
+  .cdot { width: 8px; text-align: center; font-size: 21px; font-weight: 700; align-self: flex-end; }
+  .ccell { width: 34px; height: 34px; border: 1.5px solid #aab4c4;
+           background: #eef2f8; text-align: center; line-height: 34px; font-size: 21px;
+           font-weight: 700; }
+  .ccell .ans { color: var(--ans); }
+  .cbar { border-top: 2.5px solid var(--ink); margin: 5px 0; }
+
+  /* given (already-printed) digits: boxed, plain white, dark ink */
+  .mcell.given, .ccell.given { background: #fff; color: var(--ink); }
+  /* half-height empty squares above the top number for carry / borrow marks */
+  .mcell.half, .ccell.half { height: 17px; line-height: 17px; background: #fff; }
+  /* overlap adjacent borders so neighbours share a single grid line (a real grid,
+     not a row of separate squares). Sibling selectors keep the decimal-point gap
+     and the bars as natural breaks. */
+  .mcell + .mcell, .ccell + .ccell { margin-left: -1.5px; }
+  .mrow + .mrow, .crow + .crow { margin-top: -1.5px; }
+
+  /* measurement */
+  .measure-item { margin: 6px 0 14px; }
+  .measure-item .ilabel { font-size: 15px; font-weight: 600; margin-bottom: 2px; }
+  .measure-svg { display: block; width: 100%; max-width: 720px; height: auto; }
+  .mq { font-size: 15px; margin: 12px 0 4px; line-height: 1.5; }
+  .qrow { margin: 6px 0 0 22px; display: flex; flex-wrap: wrap; gap: 10px 34px; }
+  .mitem { font-size: 16px; }
+  .mblank { min-width: 70px; }
+
+  @media print {
+    body { background: #fff; padding: 0; }
+    .controls { display: none; }
+    .sheet { box-shadow: none; max-width: none; margin: 0; padding: 14mm; }
+    section { margin-bottom: 18px; }
+  }
+</style>
+</head>
+<body>
+  <div class="controls">
+    <button onclick="generate()">🔄 New Worksheet</button>
+    <button class="secondary" onclick="window.print()">🖨️ Print</button>
+    <label><input type="checkbox" id="ansToggle" onchange="document.body.classList.toggle('show-ans', this.checked)"> Show answers</label>
+    <span class="hint">Click “New Worksheet” for a fresh set anytime. Print with answers hidden for practice.</span>
+  </div>
+
+  <div class="sheet">
+    <div id="content"></div>
+  </div>
+
+<script>
+/* ---------- helpers ---------- */
+function randInt(min, max){ return Math.floor(Math.random() * (max - min + 1)) + min; }
+function pick(arr){ return arr[randInt(0, arr.length - 1)]; }
+function shuffle(a){ a = a.slice(); for(let i=a.length-1;i>0;i--){ const j=randInt(0,i); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+
+// format an integer scaled by 10^decimals back into a decimal string
+function fmt(intVal, decimals){
+  const neg = intVal < 0; intVal = Math.abs(intVal);
+  let s = intVal.toString().padStart(decimals + 1, '0');
+  if (decimals > 0) s = s.slice(0, s.length - decimals) + '.' + s.slice(s.length - decimals);
+  return (neg ? '-' : '') + s;
+}
+
+// true if computing a op b in columns requires a carry (+) or borrow (-)
+function needsRegroup(a, b, op){
+  if (op === '+'){
+    let carry = 0;
+    while (a > 0 || b > 0){
+      const sum = (a % 10) + (b % 10) + carry;
+      if (sum >= 10) return true;
+      carry = 0;
+      a = Math.floor(a / 10); b = Math.floor(b / 10);
+    }
+    return false;
+  }
+  // subtraction: assumes a >= b
+  let borrow = 0;
+  while (b > 0 || borrow){
+    if ((a % 10) - borrow - (b % 10) < 0) return true;
+    borrow = 0;
+    a = Math.floor(a / 10); b = Math.floor(b / 10);
+  }
+  return false;
+}
+
+/* ---------- 1. Decimals in expanded form ---------- */
+function genExpanded(){
+  const intPart = randInt(0, 99);
+  const decLen = randInt(1, 3);
+  const dec = [];
+  for (let i = 0; i < decLen; i++) dec.push(i === decLen - 1 ? randInt(1, 9) : randInt(0, 9));
+  const numberStr = intPart + '.' + dec.join('');
+
+  const terms = [];
+  if (intPart >= 10){ const t = Math.floor(intPart/10); if (t) terms.push(t + '0'); }
+  const ones = intPart % 10; if (ones) terms.push(String(ones));
+  dec.forEach((d, i) => { if (d) terms.push('0.' + '0'.repeat(i) + d); });
+
+  return {
+    q: `<span class="exprow"><span class="expnum">${numberStr}</span><span class="blankline expline"><span class="ans">${terms.join(' + ')}</span></span></span>`
+  };
+}
+
+/* ---------- 2. Subtracting decimals in columns ---------- */
+function genColumn(op){            // op = '-' or '+'
+  const decimals = 1;                   // 1 digit after the decimal
+  const lo = 1, hi = 99 * 10 + 9;       // 0.1 .. 99.9 (up to 2 digits before the point)
+
+  let a, b;
+  for (let tries = 0; tries < 40; tries++){
+    a = randInt(lo, hi);
+    b = randInt(lo, hi);
+    if (op === '-' && b > a) [a, b] = [b, a];         // keep result non-negative
+    if (needsRegroup(a, b, op)) break;                // bias toward carry/borrow
+  }
+  const res = op === '+' ? a + b : a - b;
+
+  const sa = fmt(a, decimals), sb = fmt(b, decimals), sr = fmt(res, decimals);
+  const w = Math.max(sa.length, sb.length, sr.length);
+  const pad = s => s.padStart(w, ' ').split('');
+  const da = pad(sa), db = pad(sb), dr = pad(sr);
+
+  const cell = (c, answer) => {
+    if (c === '.') return `<span class="cdot">.</span>`;
+    if (answer) return `<span class="ccell"><span class="ans">${c === ' ' ? '' : c}</span></span>`;
+    return `<span class="ccell given">${c === ' ' ? '' : c}</span>`;   // given digit: boxed & visible
+  };
+  const row = (arr, opSym, answer) =>
+    `<div class="crow"><span class="cop">${opSym}</span>` +
+    arr.map(c => cell(c, answer)).join('') + `</div>`;
+  // half-height empty squares above the top number for carry / borrow marks
+  const halfRow = arr =>
+    `<div class="crow"><span class="cop"></span>` +
+    arr.map(c => c === '.' ? `<span class="cdot"></span>` : `<span class="ccell half"></span>`).join('') + `</div>`;
+
+  return {
+    q: `<div class="csum">
+          ${halfRow(da)}
+          ${halfRow(da)}
+          ${row(da, '', false)}
+          ${row(db, op === '+' ? '+' : '−', false)}
+          <div class="cbar"></div>
+          ${row(dr, '', true)}
+        </div>`
+  };
+}
+
+/* ---------- Grid multiplication: 2-digit by 2-digit ---------- */
+function genMultiply(){
+  const a = randInt(11, 99), b = randInt(11, 99);
+  const ones = b % 10, tens = Math.floor(b / 10);
+  const p1 = a * ones;        // ones partial product
+  const p2 = a * tens * 10;   // tens partial product (always ends in 0)
+  const prod = a * b;
+
+  const pad4 = n => String(n).padStart(4, ' ').split('');   // 4 chars, spaces for blanks
+  const da = pad4(a), db = pad4(b), d1 = pad4(p1), d2 = pad4(p2), dp = pad4(prod);
+
+  // top number rows: boxed given digits, op symbol in the left gutter
+  const numRow = (arr, op) =>
+    `<div class="mrow"><span class="op">${op || ''}</span>` +
+    arr.map(c => `<span class="mcell given">${c === ' ' ? '' : c}</span>`).join('') + `</div>`;
+
+  // box rows: empty boxes; answer digits hidden until "Show answers"; prefillIdx box is always shown
+  const boxRow = (arr, prefillIdx) =>
+    `<div class="mrow"><span class="op"></span>` +
+    arr.map((c, i) => i === prefillIdx
+      ? `<span class="mcell given">${c === ' ' ? '' : c}</span>`
+      : `<span class="mcell"><span class="ans">${c === ' ' ? '' : c}</span></span>`).join('') + `</div>`;
+
+  // half-height empty squares above the top number for carry marks
+  const halfRow = arr =>
+    `<div class="mrow"><span class="op"></span>` +
+    arr.map(() => `<span class="mcell half"></span>`).join('') + `</div>`;
+
+  return { q: `<div class="multi">
+      ${halfRow(da)}
+      ${halfRow(da)}
+      ${numRow(da, '')}
+      ${numRow(db, '×')}
+      <div class="mbar"></div>
+      ${boxRow(d1, -1)}
+      ${boxRow(d2, -1)}
+      <div class="mbar"></div>
+      ${boxRow(dp, -1)}
+    </div>` };
+}
+
+/* ---------- 3. Adding fractions (like denominators) ---------- */
+function frac(n, d){ return `<span class="frac"><span class="num">${n}</span><span class="den">${d}</span></span>`; }
+function genFraction(){
+  const d = pick([3,4,5,6,7,8,9,10,12,14,15,20,50,100]);
+  const a = randInt(1, d - 1);
+  const b = randInt(1, d - 1);
+  return { q: `${frac(a,d)} + ${frac(b,d)} = <span class="blankline noline"><span class="ans">${frac(a+b,d)}</span></span>` };
+}
+
+/* ---------- 6. Measuring length with a ruler ---------- */
+function gcd(a, b){ return b ? gcd(b, a % b) : a; }
+function sixMixed(s){                         // sixteenths -> mixed-number string
+  const whole = Math.floor(s / 16); let n = s % 16, d = 16;
+  if (n === 0) return `${whole}`;
+  const g = gcd(n, d); n /= g; d /= g;
+  return whole ? `${whole} ${n}/${d}` : `${n}/${d}`;
+}
+
+function drawPencil(x0, x1, cy){
+  const h = 24, top = cy - h/2, bot = cy + h/2;
+  const eraserW = 11, ferruleW = 9, tipW = 22, bodyR = x1 - tipW;
+  return `
+    <rect x="${x0}" y="${top}" width="${eraserW}" height="${h}" rx="3" fill="#f2a9c4" stroke="#b76e8a"/>
+    <rect x="${x0+eraserW}" y="${top}" width="${ferruleW}" height="${h}" fill="#c9ccd1" stroke="#8a8f96"/>
+    <rect x="${x0+eraserW+ferruleW}" y="${top}" width="${bodyR-(x0+eraserW+ferruleW)}" height="${h}" fill="#f0a830" stroke="#c07f12"/>
+    <polygon points="${bodyR},${top} ${x1},${cy} ${bodyR},${bot}" fill="#e8c79a" stroke="#b48a55"/>
+    <polygon points="${x1-8},${cy-3.4} ${x1},${cy} ${x1-8},${cy+3.4}" fill="#3a3a3a"/>`;
+}
+function drawCrayon(x0, x1, cy){
+  const h = 26, top = cy - h/2, bot = cy + h/2;
+  const tipW = 17, bodyR = x1 - tipW;
+  return `
+    <rect x="${x0}" y="${top}" width="${bodyR-x0}" height="${h}" rx="3" fill="#57a978" stroke="#3c8059"/>
+    <polygon points="${bodyR},${top} ${x1},${cy} ${bodyR},${bot}" fill="#3c8059"/>
+    <rect x="${x0+8}" y="${top+3}" width="${bodyR-x0-16}" height="4" fill="#eaf6ee" opacity="0.7"/>
+    <line x1="${x0+8}" y1="${top}" x2="${x0+8}" y2="${bot}" stroke="#3c8059" stroke-width="2"/>
+    <line x1="${bodyR-4}" y1="${top}" x2="${bodyR-4}" y2="${bot}" stroke="#3c8059" stroke-width="2"/>`;
+}
+function drawBrush(x0, x1, cy){
+  const h = 15, top = cy - h/2;
+  const bristleW = 38, ferruleW = 11;
+  const handleR = x1 - bristleW - ferruleW, ferruleR = handleR + ferruleW;
+  return `
+    <rect x="${x0}" y="${top}" width="${handleR-x0}" height="${h}" rx="7" fill="#e0b14b" stroke="#b98e2c"/>
+    <rect x="${handleR}" y="${cy-9}" width="${ferruleW}" height="18" fill="#bfc4cb" stroke="#8a8f96"/>
+    <polygon points="${ferruleR},${cy-10} ${x1},${cy} ${ferruleR},${cy+10}" fill="#7a5230" stroke="#5a3c22"/>`;
+}
+function drawMarker(x0, x1, cy){
+  const h = 28, top = cy - h/2, bot = cy + h/2;
+  const tipW = 20, bodyR = x1 - tipW;
+  return `
+    <rect x="${x0}" y="${top}" width="${bodyR-x0}" height="${h}" rx="4" fill="#3f76b5" stroke="#28527f"/>
+    <rect x="${bodyR-6}" y="${top}" width="6" height="${h}" fill="#28527f"/>
+    <polygon points="${bodyR},${top+3} ${x1},${cy} ${bodyR},${bot-3}" fill="#9aa0a6" stroke="#6f747a"/>`;
+}
+function drawNail(x0, x1, cy){
+  const sh = 8, top = cy - sh/2, pointW = 13, headW = 8, shaftR = x1 - pointW;
+  return `
+    <rect x="${x0}" y="${cy-13}" width="${headW}" height="26" rx="1.5" fill="#b8bcc2" stroke="#80858c"/>
+    <rect x="${x0+headW}" y="${top}" width="${shaftR-(x0+headW)}" height="${sh}" fill="#c2c6cc" stroke="#80858c"/>
+    <polygon points="${shaftR},${top} ${x1},${cy} ${shaftR},${cy+sh}" fill="#9aa0a6" stroke="#80858c"/>`;
+}
+const DRAW = { pencil: drawPencil, crayon: drawCrayon, paintbrush: drawBrush, marker: drawMarker, nail: drawNail };
+
+function svgRuler(originX, ppi, maxInch, topY, prec){   // prec = divisions per inch: 4, 8 or 16
+  const step = ppi / prec, x0 = originX - 6, x1 = originX + maxInch * ppi + 12;
+  let s = `<rect x="${x0}" y="${topY}" width="${x1-x0}" height="60" fill="#fcfcf7" stroke="#555" stroke-width="1.5"/>`;
+  for (let k = 0; k <= maxInch * prec; k++){
+    const x = originX + k * step;
+    let len;                                            // tick length by the fraction it marks
+    if (k % prec === 0) len = 26;                       // whole inch
+    else if ((k * 2) % prec === 0) len = 20;            // 1/2
+    else if ((k * 4) % prec === 0) len = 15;            // 1/4
+    else if ((k * 8) % prec === 0) len = 11;            // 1/8
+    else len = 7;                                       // 1/16
+    s += `<line x1="${x}" y1="${topY}" x2="${x}" y2="${topY+len}" stroke="#555" stroke-width="${k%prec===0?1.3:0.7}"/>`;
+  }
+  s += `<text x="${originX}" y="${topY+45}" font-size="13" text-anchor="middle" font-family="sans-serif" fill="#333">in</text>`;
+  for (let i = 1; i <= maxInch; i++)
+    s += `<text x="${originX+i*ppi}" y="${topY+45}" font-size="14" text-anchor="middle" font-family="sans-serif" fill="#333">${i}</text>`;
+  return s;
+}
+function itemSVG(type, six, prec){
+  const ppi = 66, originX = 16, maxInch = 10, topY = 46, cy = 26;
+  const W = originX + maxInch * ppi + 24, H = 120;
+  const x1 = originX + six * ppi / 16;
+  return `<svg class="measure-svg" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin meet">
+      ${DRAW[type](originX, x1, cy)}
+      ${svgRuler(originX, ppi, maxInch, topY, prec)}
+    </svg>`;
+}
+
+function genMeasurement(){
+  const types = shuffle(['pencil','crayon','paintbrush','marker','nail']).slice(0, 3);
+  const precs = shuffle([4, 8, pick([4, 8])]);       // rulers graduated in 1/4 and 1/8 only (1/16 too hard to read)
+  const labels = ['A','B','C'];
+  const sixSet = [];
+  const items = types.map((t, i) => {
+    const prec = precs[i], unit = 16 / prec;           // sixteenths per tick on this ruler
+    let six;                                            // length in sixteenths, lands on a real tick
+    do {
+      const whole = randInt(2, 8);                      // whole inches
+      const frac = randInt(1, prec - 1);                // fractional ticks (never a whole inch)
+      six = whole * 16 + frac * unit;
+    } while (sixSet.includes(six));
+    sixSet.push(six);
+    return { label: labels[i], type: t, six, prec };
+  });
+
+  const blocks = items.map(it =>
+    `<div class="measure-item"><div class="ilabel">Item ${it.label}:</div>${itemSVG(it.type, it.six, it.prec)}</div>`).join('');
+
+  const rowOf = fn => items.map(it =>
+    `<span class="mitem">Item ${it.label}: <span class="blankline mblank noline"><span class="ans">${fn(it)}</span></span></span>`).join('');
+
+  const sorted = items.slice().sort((a, b) => a.six - b.six);
+  const rank = {}; sorted.forEach((it, i) => rank[it.label] = i + 1);
+
+  return { q:
+    `${blocks}
+     <div class="mq"><b>1.</b> Write down the measurement of each item.
+       <div class="qrow">${rowOf(it => sixMixed(it.six) + ' in')}</div></div>
+     <div class="mq"><b>2.</b> Convert the measurements of each item into a common unit: 8ths of an inch.
+       <div class="qrow">${rowOf(it => (it.six / 2) + '/8')}</div></div>
+     <div class="mq"><b>3.</b> Rank the items from shortest to longest by writing 1-3.
+       <div class="qrow">${rowOf(it => rank[it.label])}</div></div>`
+  };
+}
+
+/* ---------- build the page ---------- */
+const SECTIONS = [
+  { title: '1. Decimals in expanded form', instr: 'Write each number in expanded form.   Example: 43.287 = 40 + 3 + 0.2 + 0.08 + 0.007',
+    gen: genExpanded, cols: 'two' },
+  { title: '2. Adding fractions (like denominators)', instr: 'Find the sums.',
+    gen: genFraction, cols: 'two' },
+  { title: '3. Adding decimals in columns', instr: 'Find the sums.',
+    gen: () => genColumn('+'), cols: 'rt' },
+  { title: '4. Subtracting decimals in columns', instr: 'Find the difference.',
+    gen: () => genColumn('-'), cols: 'rt' },
+  { title: '5. Grid multiplication: 2-digit by 2-digit', instr: 'Multiply by the ones, then the tens (its row ends in 0), then add the two rows.',
+    gen: genMultiply, cols: '' },
+  { title: '6. Measuring length with a ruler', instr: 'Read each item against the ruler, then answer the questions.',
+    gen: genMeasurement, single: true }
+];
+
+function generate(){
+  const root = document.getElementById('content');
+  root.innerHTML = '';
+  SECTIONS.forEach(sec => {
+    const s = document.createElement('section');
+    let html = `<h2>${sec.title}</h2><p class="instr">${sec.instr}</p>`;
+    if (sec.single){
+      html += `<div class="single">${sec.gen().q}</div>`;
+    } else {
+      html += `<div class="grid ${sec.cols}">`;
+      for (let i = 0; i < 6; i++) html += `<div class="prob">${sec.gen().q}</div>`;
+      html += `</div>`;
+    }
+    s.innerHTML = html;
+    root.appendChild(s);
+  });
+}
+
+generate();
+</script>
+</body>
+</html>
